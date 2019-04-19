@@ -23,23 +23,26 @@ resourceallocator_2(char *host)
 		exit (1);
 	}
 #endif	/* DEBUG */
+	while(1)
+	{
+		/*Request A random number of Private Resources 
+		 * from the server
+		 * in Range [0: MaxPrivateReources]
+		 * @MaxPrivateReources:=10
+		 */
+		allocate_2_arg.req = rand()%10;;
 
-	/*Request A random number of Private Resources 
-	 * from the server
-	 * in Range [0: MaxPrivateReources]
-	 * @MaxPrivateReources:=10
-	 */
-	allocate_2_arg.req = rand()%10;;
-
-	retval_1 = allocate_2(&allocate_2_arg, &result_1, clnt);
-	if (retval_1 != RPC_SUCCESS) {
-		clnt_perror (clnt, "call failed");
-	}
-
-	if (result_1.rep==allocate_2_arg.req+20){
-		printf("I'm Blocked\n");
-	}
-	else printf("[Result:\t] %ld\n",result_1.rep);
+		retval_1 = allocate_2(&allocate_2_arg, &result_1, clnt);
+		if (retval_1 != RPC_SUCCESS) {
+			clnt_perror (clnt, "call failed");
+		}
+		/*Check the result*/
+		if (result_1.rep==allocate_2_arg.req*2){
+			printf("I'm Blocked\n");
+		}
+		else printf("[Result:\t] %ld\n",result_1.rep);
+		sleep(3); /*Delay between each Request*/
+	{
 
 #ifndef	DEBUG
 	clnt_destroy (clnt);
