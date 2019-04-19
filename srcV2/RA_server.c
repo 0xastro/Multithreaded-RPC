@@ -24,18 +24,15 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 * insert server code here
 	 * @req and @rep have been specified in "RA.x" file 
 	 */
-
+	
 	/*For each client request, a thread is to be started
 	 * @pthread_create is called in the @RA_svc.c
 	 */	
 	printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
 
-	while (argp->req > rsrc_pvt) {
-		argp->req+=20;
+	while (argp->req > rsrc_pvt); /*{
 		printf("Block thread %d\n",pthread_self());
-		argp->req-=20;
-	}
-
+	}DEBUG*/
 	/* 
 	 * >critical section
 	 * Update the resources number */
@@ -49,7 +46,8 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 * for random duration between up to 3 secs*/
 	work=rand()%9;
 	sleep(work);
- 
+ 	
+	/*Return Result which is equal to (2 * TheNumberOfRequestedResources)*/
 	result->rep = 2*(argp->req);
 	/* 
 	 * >critical section
@@ -58,12 +56,10 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	rsrc_pvt+=argp->req;
 	pthread_mutex_unlock(&lock);
 
-
-	printf("[DEBUG:\t] rsrc_pvt = %d \n",rsrc_pvt);
   	printf("[END  :\t] Thread id = %d is done %d \n",pthread_self(),result->rep);
+	printf("[DEBUG:\t] rsrc_pvt = %d \n",rsrc_pvt);
 
   	//return(TRUE);
-
 	return retval;
 }
 
