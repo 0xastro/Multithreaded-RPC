@@ -37,7 +37,7 @@ resourceallocator_2(char *host)
 			clnt_perror (clnt, "call failed");
 		}
 		/*Check the result*/
-		if (result_1.rep==allocate_2_arg.req*2){
+		if (result_1.rep!=allocate_2_arg.req*2){
 			printf("I'm Blocked\n");
 		}
 		else printf("[Result:\t] %ld\n",result_1.rep);
