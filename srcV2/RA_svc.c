@@ -25,6 +25,8 @@ struct thr_par //thr_data
 	struct svc_req *rqstp;
 	SVCXPRT *transp;
 };
+
+/*--------------------------------------------------------*/
 /* Define the thread_id @p_thread and @attr */
 pthread_t p_thread; 
 pthread_attr_t attr;
@@ -87,11 +89,17 @@ serv_request(void *data)
 	return;
 }
 
-/*[END MODIFICATIO]--------------------------------------*/
+/*[END MODIFICATION]--------------------------------------*/
 
 
+/*--------------------------------------------------------*/
 /* New Modification to Start Threads for each request
  *
+ */
+/*--------------------------------------------------------*/
+/* @resourceallocator_2 is invoked each time that there is a RPC
+ * from any client. Therefore, a thread is created 
+ * to services this request,
  */
 static void
 resourceallocator_2(struct svc_req *rqstp, register SVCXPRT *transp)
@@ -104,54 +112,13 @@ resourceallocator_2(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	data_ptr->rqstp = rqstp;
 	data_ptr->transp = transp;
-	pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
+	//pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
 	pthread_create(&p_thread,&attr,serv_request,(void *)data_ptr);
+	pthread_join(p_thread, NULL);
 }
-/*
-	union {
-		rsrc_req allocate_2_arg;
-	} argument;
-	union {
-		reply allocate_2_res;
-	} result;
-	bool_t retval;
-	xdrproc_t _xdr_argument, _xdr_result;
-	bool_t (*local)(char *, void *, struct svc_req *);
-*/
-/*	switch (rqstp->rq_proc) {
-	case NULLPROC:
-		(void) svc_sendreply (transp, (xdrproc_t) xdr_void, (char *)NULL);
-		return;
 
-	case allocate:
-		_xdr_argument = (xdrproc_t) xdr_rsrc_req;
-		_xdr_result = (xdrproc_t) xdr_reply;
-		local = (bool_t (*) (char *, void *,  struct svc_req *))allocate_2_svc;
-		break;
 
-	default:
-		svcerr_noproc (transp);
-		return;
-	}
-	memset ((char *)&argument, 0, sizeof (argument));
-	if (!svc_getargs (transp, (xdrproc_t) _xdr_argument, (caddr_t) &argument)) {
-		svcerr_decode (transp);
-		return;
-	}
-	retval = (bool_t) (*local)((char *)&argument, (void *)&result, rqstp);
-	if (retval > 0 && !svc_sendreply(transp, (xdrproc_t) _xdr_result, (char *)&result)) {
-		svcerr_systemerr (transp);
-	}
-	if (!svc_freeargs (transp, (xdrproc_t) _xdr_argument, (caddr_t) &argument)) {
-		fprintf (stderr, "%s", "unable to free arguments");
-		exit (1);
-	}
-	if (!resourceallocator_2_freeresult (transp, _xdr_result, (caddr_t) &result))
-		fprintf (stderr, "%s", "unable to free results");
-*/
-//	return;
-//}
-
+/*@MAIN---------------------------------------------------*/
 int
 main (int argc, char **argv)
 {
