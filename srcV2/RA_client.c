@@ -42,7 +42,7 @@ resourceallocator_2(char *host)
 		}
 		else printf("[Result:\t] %ld\n",result_1.rep);
 		sleep(3); /*Delay between each Request*/
-	{
+	}
 
 #ifndef	DEBUG
 	clnt_destroy (clnt);
