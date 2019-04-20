@@ -34,7 +34,7 @@ for each client request Create_Thread
 end
 ```
 
-Don't any of these commands; where most of the generated server and client files have been modified.
+You shouldn't use any of these commands; where most of the generated server and client files have been modified.
 ``` sh
 rpcgen -a -M RA.x
 make clean -f Makefile.RA
