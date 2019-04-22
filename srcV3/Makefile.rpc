@@ -1,0 +1,15 @@
+all: client server
+
+client: RA_client.c RA_clnt.c
+server: RA_server.c RA_svc.c
+
+RA_clnt.c: RA.x
+	rpcgen -N RA.x
+  
+RA_svc.c: RA.x
+	rpcgen -N RA.x
+
+clean:
+	rm -f RA_client RA_server
+	rm -f *.o
+	rm -f RA_clnt.c RA_svc.c RA.x
