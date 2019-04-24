@@ -29,13 +29,18 @@ AQLock_ticket Qlock =	TICKET_LOCK_INITIALIZER;	/*Lock for Ticket based Queue*/
 unsigned int 		rsrc_pvt=10;			/*Number of Private Resources*/
 unsigned int 		init=0;				/*Flag to initialize the @lock once*/
 
+
+/*----------------------------------------------*/
+/*Semi-Anderson Queue Based Ticket Algorithm	*
+ *without Atomic Operation Fetch and Increment  */
+/*----------------------------------------------*/
 void AQ_Lock(AQLock_ticket *ticket);
 void AQ_Unlock(AQLock_ticket *ticket);
 
 
 
 /*----------------------------------------------*/
-/* Function: @resourceallocator_2 is Called
+/* Function: @resourceallocator_2 is Called	*
  *  by the thread @serv_request 	        */
 /*----------------------------------------------*/
 
@@ -47,20 +52,23 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	/*Initialize all the locks*/
 	if (!init) {
 		pthread_mutex_init(&lock,NULL);
-		pthread_mutex_init(&rsrc_lock,NULL);
-		pthread_cond_init(&cond,NULL);
 		init=1;
 	}
 
+	
 	/*For each client request, a thread is to be started
 	 * @pthread_create is called in the @RA_svc.c
 	 */	
+	/*First: Check the available resources*/
+	while (argp->req > rsrc_pvt) {
+		pthread_cond_wait(&cond,&rsrc_lock);
+	}
+	/*Second: Aquire the lock*/
 	
-	/*Print the running thread and the num of requested resources*/
-	printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
-
 	/*Anderson Queue Lock*/
 	AQ_Lock(&Qlock);
+	/*Print the running thread and the num of requested resources*/
+	printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
 
 	/* 
 	 * >critical section
@@ -69,21 +77,11 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	rsrc_pvt-=argp->req;
 	pthread_mutex_unlock(&lock);
 	printf("[DEBUG:\t] rsrc_pvt = %d \n",rsrc_pvt);
-
-
-	pthread_mutex_lock(&rsrc_lock);
-	/*Block: num_requestedResource < num_PrivateResources*/
-	while (argp->req > rsrc_pvt) {
-		pthread_cond_wait(&cond,&rsrc_lock);
-	}
+	
 	/*Do some dummy work*/
 	work=rand()%2;
 	sleep(work); 
 	result->rep = 2*(argp->req);
-	/*WakeUp all other threads in the Queue*/
-	pthread_cond_broadcast(&cond);
-	pthread_mutex_unlock(&rsrc_lock);
-s
 
 	/* 
 	 * >critical section
@@ -91,6 +89,7 @@ s
 	pthread_mutex_lock(&lock);
 	rsrc_pvt+=argp->req;
 	pthread_mutex_unlock(&lock);
+	
 	printf("[DEBUG:\t] rsrc_pvt = %d \n",rsrc_pvt);
   	printf("[END  :\t] Thread id = %d is done %d \n",pthread_self(),result->rep);
 
