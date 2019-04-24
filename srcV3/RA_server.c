@@ -60,11 +60,9 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 * @pthread_create is called in the @RA_svc.c
 	 */	
 	/*First: Check the available resources*/
-	while (argp->req > rsrc_pvt) {
-		pthread_cond_wait(&cond,&rsrc_lock);
-	}
-	/*Second: Aquire the lock*/
+	while (argp->req > rsrc_pvt);
 	
+	/*Second: Aquire the lock*/
 	/*Anderson Queue Lock*/
 	AQ_Lock(&Qlock);
 	/*Print the running thread and the num of requested resources*/
