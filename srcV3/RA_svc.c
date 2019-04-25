@@ -28,8 +28,8 @@ struct thr_par //thread_parameters
 };
 unsigned long int id=0;
 /* Define the thread_id @p_thread and @attr */
-pthread_t p_thread[100]; 
-pthread_attr_t attr[100];
+pthread_t p_thread; 
+pthread_attr_t attr;
 /* Function/Handler Executed by the thread */
 
 
@@ -38,8 +38,11 @@ void *
 serv_request(void *data)
 {
 
-	struct thr_par *ptr_par = (struct thr_par *)data;
-
+struct thr_data
+{
+struct svc_req *rqstp;
+SVCXPRT *transp;
+} *ptr_data;
 	union {
 		rsrc_req allocate_2_arg;
 		rsrc_req release_2_arg;
@@ -48,14 +51,14 @@ serv_request(void *data)
 		reply allocate_2_res;
 		reply release_2_res;
 	} result;
+
 	bool_t retval;
 	xdrproc_t _xdr_argument, _xdr_result;
 	bool_t (*local)(char *, void *, struct svc_req *);
 
-
-	struct svc_req *rqstp = ptr_par->rqstp;
-	register SVCXPRT *transp = ptr_par->transp;
-	       
+	ptr_data = (struct thr_data  *)data;
+	struct svc_req *rqstp = ptr_data-> rqstp;
+	register SVCXPRT *transp = ptr_data-> transp;
 
 	switch (rqstp->rq_proc) {
 	case NULLPROC:
@@ -105,7 +108,11 @@ serv_request(void *data)
 	//return;
 }
 
-
+ /*
+  *New modfication for procedure resourceallocator_2 ,
+  * starting thread for each clients request 
+  * to invoke remote procedure
+  */
 static void
 resourceallocator_2(struct svc_req *rqstp, register SVCXPRT *transp)
 {
@@ -119,8 +126,8 @@ resourceallocator_2(struct svc_req *rqstp, register SVCXPRT *transp)
 	data_ptr->rqstp = rqstp;
 	data_ptr->transp = transp;
 	/*Create a Thread to Handle each Request*/
-	pthread_attr_setdetachstate(&attr[id],PTHREAD_CREATE_DETACHED);
-	pthread_create(&p_thread[id],&attr[id],serv_request,(void *)data_ptr);
+	pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
+	pthread_create(&p_thread,&attr,serv_request,(void *)data_ptr);
 }
 
 int
