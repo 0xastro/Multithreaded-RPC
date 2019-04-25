@@ -32,10 +32,29 @@ pthread_t p_thread[100];
 pthread_attr_t attr[100];
 /* Function/Handler Executed by the thread */
 
+/*Testing*/
+typedef struct {           /* Descriptor of a request from client */
+  pthread_t *threadp;      /* Pointer to thread that will handle a request */
+                           /* [There may be multiple active threads. Only */
+                           /* last is kept track of.*/
+union {
+	rsrc_req allocate_2_arg;
+	rsrc_req release_2_arg;
+} argument;
+union {
+	reply allocate_2_res;
+	reply release_2_res;
+} result;
+  char *(*local)();
+  struct svc_req *rqstp;
+  SVCXPRT *transp;
+  } request;
+/*Testing*/
 
-
+/*void *
+serv_request(void *data)*/
 void *
-serv_request(void *data)
+serv_request(request *data)
 {
 
 	struct thr_par *ptr_par = (struct thr_par *)data;
@@ -55,7 +74,7 @@ serv_request(void *data)
 
 	struct svc_req *rqstp = ptr_par->rqstp;
 	register SVCXPRT *transp = ptr_par->transp;
-	       
+	*/        
 
 	switch (rqstp->rq_proc) {
 	case NULLPROC:

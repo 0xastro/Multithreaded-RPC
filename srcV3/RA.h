@@ -32,12 +32,18 @@ typedef struct reply reply;
 #define allocate 1
 extern  enum clnt_stat allocate_2(rsrc_req *, reply *, CLIENT *);
 extern  bool_t allocate_2_svc(rsrc_req *, reply *, struct svc_req *);
+#define release 2
+extern  enum clnt_stat release_2(rsrc_req *, reply *, CLIENT *);
+extern  bool_t release_2_svc(rsrc_req *, reply *, struct svc_req *);
 extern int resourceallocator_2_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
 #define allocate 1
 extern  enum clnt_stat allocate_2();
 extern  bool_t allocate_2_svc();
+#define release 2
+extern  enum clnt_stat release_2();
+extern  bool_t release_2_svc();
 extern int resourceallocator_2_freeresult ();
 #endif /* K&R C */
 

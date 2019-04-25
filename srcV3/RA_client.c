@@ -5,54 +5,64 @@
  */
 
 #include "RA.h"
-
-
+#define RELEASE 1
 
 void
 resourceallocator_2(char *host)
 {
-
 	CLIENT *clnt;
 	enum clnt_stat retval_1;
 	reply result_1;
 	rsrc_req  allocate_2_arg;
-	#ifndef	DEBUG
+	enum clnt_stat retval_2;
+	reply result_2;
+	rsrc_req  release_2_arg;
+
+#ifndef	DEBUG
 	clnt = clnt_create ("127.0.0.1", ResourceAllocator, RA, "udp");
 	if (clnt == NULL) {
 		clnt_pcreateerror ("127.0.0.1");
 		exit (1);
 	}
-	#endif	/* DEBUG */
+#endif	/* DEBUG */
 
-	while(1)  /*Each Client Make a request every 5 sec*/
-	{
-		/*Request A random number of Private Resources 
-		 * from the server
-		 * in Range [0: MaxPrivateReources]
-		 * @MaxPrivateReources:=10
-		 */
-		allocate_2_arg.req = rand()%10;;
+	/*--------------------------------------------*/
+	/*
+	 * Allocate Request for N number of Resources
+	 * where N_Requested <= M_Private
+	 */
+	/*--------------------------------------------*/
+	allocate_2_arg.req = rand()%10;
+	retval_1 = allocate_2(&allocate_2_arg, &result_1, clnt);
+	if (retval_1 != RPC_SUCCESS) {
+		clnt_perror (clnt, "call failed");
+	}
+	
+	/*Check if the results have beed reurned correctly;
+	 * if It's Not; so the request is blocked
+	 * due to the number of resources
+	 */
+	if (result_1.rep != allocate_2_arg.req*2){ 
+		printf("I'm Blocked\n");
+	}
+	else printf("[Result:\t] %ld\n",result_1.rep);
 
-		retval_1 = allocate_2(&allocate_2_arg, &result_1, clnt);
-		if (retval_1 != RPC_SUCCESS) {
-			clnt_perror (clnt, "call failed");
-		}
-
-		/*Check if the results have beed reurned correctly;
-		 * if It's Not; so the request is blocked
-		 * due to the number of resources
-		 */
-		if (result_1.rep != allocate_2_arg.req*2){ 
-			printf("I'm Blocked\n");
-		}
-		else printf("[Result:\t] %ld\n",result_1.rep);
-		sleep(1);
+	/*--------------------------------------------*/
+	/*
+	 * Release/Deallocate the Aquired Resources
+	 */
+	/*--------------------------------------------*/
+	sleep(2);
+	release_2_arg.req = RELEASE;
+	retval_2 = release_2(&release_2_arg, &result_2, clnt);
+	if (retval_2 != RPC_SUCCESS) {
+		clnt_perror (clnt, "call failed");
 	}
 
-	#ifndef	DEBUG
-		clnt_destroy (clnt);
-	#endif	 /* DEBUG */
-	
+	/*--------------------------------------------*/
+#ifndef	DEBUG
+	clnt_destroy (clnt);
+#endif	 /* DEBUG */
 }
 
 
