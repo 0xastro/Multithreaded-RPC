@@ -32,6 +32,7 @@ resourceallocator_2(char *host)
 	 * where N_Requested <= M_Private
 	 */
 	/*--------------------------------------------*/
+while(1){
 	allocate_2_arg.req = rand()%10;
 	retval_1 = allocate_2(&allocate_2_arg, &result_1, clnt);
 	if (retval_1 != RPC_SUCCESS) {
@@ -58,7 +59,7 @@ resourceallocator_2(char *host)
 	if (retval_2 != RPC_SUCCESS) {
 		clnt_perror (clnt, "call failed");
 	}
-
+}
 	/*--------------------------------------------*/
 #ifndef	DEBUG
 	clnt_destroy (clnt);

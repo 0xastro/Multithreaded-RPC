@@ -7,13 +7,20 @@
 #include "RA.h"
 
 /*Global Shared resources handeled by the threads*/
-pthread_mutex_t 	lock;				/*mutexLock for updating the private resources number*/
+pthread_mutex_t 	lockR;				/*Lock for "Checking" the private resources number*/
+pthread_mutex_t 	lockA;				/*Lock for "updating" the private resources number*/
+pthread_mutex_t 	lock;				/*Lock for "updating" the private resources number*/
+pthread_cond_t		cond;
 unsigned int 		rsrc_pvt=10;			/*Number of Private Resources*/
 unsigned int 		init=0;				/*Flag to initialize the @lock once*/
 unsigned int		Release=0;
 unsigned int 		retrieve;
 
 
+/*Anti-Starvation FIFO Queue lock/unlock */
+void	TICKET_Queue_Init();
+void	TICKET_Queue_Lock();
+void	TICKET_Queue_Unlock();
 /*----------------------------------------------*/
 /* 
  *  Function: @allocate_2_svc is Called
@@ -32,14 +39,22 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	/*Initialize all the locks*/
 	if (!init) {
 		pthread_mutex_init(&lock,NULL);
+		pthread_mutex_init(&lockA,NULL);
+		pthread_mutex_init(&lockR,NULL);
+		pthread_cond_init(&cond,NULL);
 		init=1;
 	}
+	retrieve=argp->req;
 
-	while (argp->req > rsrc_pvt);
+	pthread_mutex_lock(&lockA);
+	while (argp->req > rsrc_pvt) {
+		pthread_cond_wait(&cond,&lockA);
+	}
+	pthread_mutex_unlock(&lockA);
 
 	/*Print the running thread and the num of requested resources*/
 	printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
-	retrieve=argp->req;
+	
 	/* 
 	 * >critical section
 	 * [Allocation]: Update the resources number */
@@ -71,9 +86,14 @@ release_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 * >critical section
 	 * [DeAllocation]: Update the resources number */
 	if (argp->req == 1) { 		
+
 		pthread_mutex_lock(&lock);
 		rsrc_pvt+=retrieve;
 		pthread_mutex_unlock(&lock);
+
+		pthread_mutex_lock(&lockR);
+		pthread_cond_broadcast(&cond);
+		pthread_mutex_unlock(&lockR);
 
 		printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
 	  	printf("[END  :\t] Thread id = %d is done\n",pthread_self());		
