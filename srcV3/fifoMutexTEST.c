@@ -2,8 +2,13 @@
 #define TH_ID   pthread_self()
 
 struct QueueLock {
-        pthread_mutex_t		mutex;
-        pthread_cond_t		cond;
+        pthread_mutex_t		lock,
+				lockR,
+				lockx;		
+	
+        pthread_cond_t		cond,
+				condR;
+	
        	unsigned int		worker;
         unsigned int		waiter;
 };
