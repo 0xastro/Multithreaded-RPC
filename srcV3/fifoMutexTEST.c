@@ -5,7 +5,7 @@ struct QueueLock {
         pthread_mutex_t		mutex;
         pthread_cond_t		cond;
        	unsigned int		worker;
-        unsignet int		waiter;
+        unsigned int		waiter;
 };
 
 unsigned int	init_lock;
