@@ -134,17 +134,18 @@ int Queue_Lock(Qlock *qlock) {
 	pthread_mutex_lock(&qlock->lock[myTicket]);
 
 	/*Block if there's not enough resources*/
-	if (Req_Rsrc > rsrc_pvt) {		
+	while (Req_Rsrc > rsrc_pvt) {		
 		/*Block If It's not my turn*/
 		while (myTicket != qlock->worker) {
 			pthread_cond_wait(&qlock->cond,&qlock->lock[myTicket]);
 		}	
-	} else {
-		pthread_mutex_lock(&lockR);		
-		rsrc_pvt-=Req_Rsrc;
-		pthread_mutex_unlock(&lockR);		
-		return 1;
 	}
+	/*Wake up*/
+	pthread_mutex_lock(&lockR);		
+	rsrc_pvt-=Req_Rsrc;
+	pthread_mutex_unlock(&lockR);		
+	//  __sync_sub_and_fetch(rsrc_pvt, Req_Rsrc);
+	return 1;
 }
 
 int Queue_UnLock(Qlock *qlock) { 
