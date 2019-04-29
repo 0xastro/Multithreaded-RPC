@@ -63,7 +63,7 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 
 	QFlag=Queue_Lock(&lock);  
 	rsrc_pvt+=Req_Rsrc;
-  Queue_UnLock(&lock);
+  	Queue_UnLock(&lock);
   
 	if (QFlag) {
 		printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
@@ -91,10 +91,13 @@ release_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 * [DeAllocation]: Update the resources number */
 	Rep_Rsrc=argp->req;
 	if (Rep_Rsrc == 1) { 		
-	    QFlag=Queue_Lock(&lock);  
-	    rsrc_pvt-=Req_Rsrc;
-      Queue_UnLock(&lock);		
-      printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
+		
+		/*Release the resources*/
+		pthread_mutex_lock(&lockR);		
+		rsrc_pvt+=Req_Rsrc;
+		pthread_mutex_unlock(&lockR);
+		
+		printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
 	  	printf("[END  :\t] Thread id = %d is done\n",pthread_self());
 	}
 
