@@ -61,9 +61,17 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	/*Save the Requested Resources*/
 	Req_Rsrc=argp->req;
 
+	/*
+	 * If the number of requested resources is satisfied
+	 * so QFlag:=1
+	 * else threads will wait until there's a broadcast when 
+	 * resources are released
+	 */
 	QFlag=Queue_Lock(&lock);  
-	rsrc_pvt+=Req_Rsrc;
-  	Queue_UnLock(&lock);
+
+	pthread_mutex_lock(&lockR);		
+	rsrc_pvt-=Req_Rsrc;
+	pthread_mutex_unlock(&lockR);
   
 	if (QFlag) {
 		printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
