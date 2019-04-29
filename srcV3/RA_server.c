@@ -6,21 +6,41 @@
 
 #include "RA.h"
 
-/*Global Shared resources handeled by the threads*/
-pthread_mutex_t 	lockR;				/*Lock for "Checking" the private resources number*/
-pthread_mutex_t 	lockA;				/*Lock for "updating" the private resources number*/
-pthread_mutex_t 	lock;				/*Lock for "updating" the private resources number*/
-pthread_cond_t		cond;
-unsigned int 		rsrc_pvt=10;			/*Number of Private Resources*/
+#define TH_ID   pthread_self()
+#define MAX_TH	10
+
+typedef struct QueueLock Qlock;
+struct QueueLock {
+        pthread_mutex_t		lock[MAX_TH];		
+        pthread_cond_t		cond;
+       	unsigned int		worker;
+        unsigned int		waiter;
+};
+
+/*----------------------------------------------*/
+/* 
+ *Ticket Based Queue Prototyping
+ *Anti-Starvation FIFO Queue lock/unlock 
+ */
+/*----------------------------------------------*/
+
+int Queue_init(Qlock *qlock);
+int Queue_Lock(Qlock *qlock);
+int Queue_UnLock(Qlock *qlock);
+/*----------------------------------------------*/
+/*
+ *Global Shared resources handeled by the threads
+ */
+/*----------------------------------------------*/
+pthread_mutex_t 	lockR;				/*Lock for "updating" the private resources number*/
+pthread_mutex_t 	lock;				/*Lock for the Queue*/
+pthread_cond_t		cond;				/*condition to wait if there's not enough resources*/
+unsigned int 		rsrc_pvt=10;		/*Number of Private Resources*/
 unsigned int 		init=0;				/*Flag to initialize the @lock once*/
-unsigned int		Release=0;
-unsigned int 		retrieve;
+unsigned int 		Req_Rsrc,Rep_Rsrc;	/*Requested Resources, Reply*/
+unsigned int 		QFlag;
+int 				myTicket;
 
-
-/*Anti-Starvation FIFO Queue lock/unlock */
-void	TICKET_Queue_Init();
-void	TICKET_Queue_Lock();
-void	TICKET_Queue_Unlock();
 /*----------------------------------------------*/
 /* 
  *  Function: @allocate_2_svc is Called
@@ -30,44 +50,28 @@ void	TICKET_Queue_Unlock();
 bool_t
 allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 {
-	bool_t retval;
+	bool_t		retval;
+	unsigned int 	work;
 
-	/*
-	 * insert server code here
-	 */
-	unsigned int work;
-	/*Initialize all the locks*/
-	if (!init) {
+	/*Initialize the lock*/
+	if (!init){
 		pthread_mutex_init(&lock,NULL);
-		pthread_mutex_init(&lockA,NULL);
-		pthread_mutex_init(&lockR,NULL);
-		pthread_cond_init(&cond,NULL);
-		init=1;
-	}
-	retrieve=argp->req;
-
-	pthread_mutex_lock(&lockA);
-	while (argp->req > rsrc_pvt) {
-		pthread_cond_wait(&cond,&lockA);
-	}
-	pthread_mutex_unlock(&lockA);
-
-	/*Print the running thread and the num of requested resources*/
-	printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
-	
-	/* 
-	 * >critical section
-	 * [Allocation]: Update the resources number */
-	pthread_mutex_lock(&lock);
-	rsrc_pvt-=argp->req;
-	pthread_mutex_unlock(&lock);
-	printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
-	/*Do some dummy work, untill deAllocation Request is Recieved*/
-	result->rep = 2*(argp->req);
-	work=rand()%2;
-	sleep(work); 
+		Queue_init(&lock);
+		}
 
 	
+	
+	/*Save the Requested Resources*/
+	Req_Rsrc=argp->req;
+
+	QFlag=Queue_Lock(&lock);
+	if (QFlag) {
+		printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
+		printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
+		result->rep = 2*(argp->req);
+		work=rand()%2;
+		sleep(work); 
+	} else printf("I shouldn't be here \n");
 
 	return retval;
 }
@@ -75,7 +79,7 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 
 /*----------------------------------------------*/
 /* Function: @release_2_svc is Called
- *  by the thread @serv_request 	        */
+ *  by the thread @serv_request 	        	*/
 /*----------------------------------------------*/
 bool_t
 release_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
@@ -85,18 +89,11 @@ release_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	/* 
 	 * >critical section
 	 * [DeAllocation]: Update the resources number */
-	if (argp->req == 1) { 		
-
-		pthread_mutex_lock(&lock);
-		rsrc_pvt+=retrieve;
-		pthread_mutex_unlock(&lock);
-
-		pthread_mutex_lock(&lockR);
-		pthread_cond_broadcast(&cond);
-		pthread_mutex_unlock(&lockR);
-
+	Rep_Rsrc=argp->req;
+	if (Rep_Rsrc == 1) { 		
+		Queue_UnLock(&lock);
 		printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
-	  	printf("[END  :\t] Thread id = %d is done\n",pthread_self());		
+	  	printf("[END  :\t] Thread id = %d is done\n",pthread_self());
 	}
 
 	return retval;
@@ -112,4 +109,54 @@ resourceallocator_2_freeresult (SVCXPRT *transp, xdrproc_t xdr_result, caddr_t r
 	 */
 
 	return 1;
+}
+
+
+
+int Queue_init(Qlock *qlock){
+
+	if(!init) { 
+		int i;
+		for (i=0; i< MAX_TH; i++) {
+			pthread_mutex_init(&(qlock->lock[i]), NULL);
+		}
+		pthread_cond_init(&(qlock->cond), NULL);
+
+		qlock->worker = 1U;	//set the LSB to 1
+		qlock->waiter = 0U;	
+	}
+	init=1;
+}
+
+
+int Queue_Lock(Qlock *qlock) { 
+
+	myTicket= __sync_add_and_fetch( (int*) & (qlock->waiter), (int) 1);
+	printf("myTicket:%d\n", myTicket);
+	pthread_mutex_lock(&qlock->lock[myTicket]);
+
+	/*Block if there's not enough resources*/
+	if (Req_Rsrc > rsrc_pvt) {		
+		/*Block If It's not my turn*/
+		while (myTicket != qlock->worker) {
+			pthread_cond_wait(&qlock->cond,&qlock->lock[myTicket]);
+		}	
+	} else {
+		pthread_mutex_lock(&lockR);		
+		rsrc_pvt-=Req_Rsrc;
+		pthread_mutex_unlock(&lockR);		
+		return 1;
+	}
+}
+
+int Queue_UnLock(Qlock *qlock) { 
+	/*Increase the waiters counter*/
+	qlock->worker = (qlock->worker)+1;
+	
+	pthread_mutex_lock(&lockR);		
+	rsrc_pvt+=Req_Rsrc;
+	pthread_mutex_unlock(&lockR);		
+	
+	pthread_cond_broadcast(&qlock->cond);	
+	pthread_mutex_unlock(&qlock->lock[myTicket]);	
 }
