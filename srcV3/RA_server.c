@@ -39,7 +39,7 @@ unsigned int 		rsrc_pvt=10;		/*Number of Private Resources*/
 unsigned int 		init=0;				/*Flag to initialize the @lock once*/
 unsigned int 		Req_Rsrc,Rep_Rsrc;	/*Requested Resources, Reply*/
 unsigned int 		QFlag;
-int 				myTicket;
+unsigned int		myTicket;
 
 /*----------------------------------------------*/
 /* 
@@ -50,16 +50,14 @@ int 				myTicket;
 bool_t
 allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 {
-	bool_t		retval;
-	unsigned int 	work;
+	bool_t			retval;
+	unsigned int	work;
 
 	/*Initialize the lock*/
-	if (!init){
+	if (!init) {
 		pthread_mutex_init(&lock,NULL);
 		Queue_init(&lock);
-		}
-
-	
+	}
 	
 	/*Save the Requested Resources*/
 	Req_Rsrc=argp->req;
