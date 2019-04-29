@@ -96,7 +96,9 @@ release_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 		pthread_mutex_lock(&lockR);		
 		rsrc_pvt+=Req_Rsrc;
 		pthread_mutex_unlock(&lockR);
-		
+		/*BroadCast to indicate that the resources have been released*/
+		Queue_UnLock(&lock);
+
 		printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
 	  	printf("[END  :\t] Thread id = %d is done\n",pthread_self());
 	}
