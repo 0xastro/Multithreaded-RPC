@@ -141,11 +141,7 @@ int Queue_Lock(Qlock *qlock) {
 		while (myTicket != qlock->worker) {
 			pthread_cond_wait(&qlock->cond,&qlock->lock);
 		}	
-	}
-	/*Wake up*/
-	pthread_mutex_lock(&lockR);		
-	rsrc_pvt-=Req_Rsrc;
-	pthread_mutex_unlock(&lockR);		
+	}	
 	//  __sync_sub_and_fetch(rsrc_pvt, Req_Rsrc);
 	return 1;
 }
