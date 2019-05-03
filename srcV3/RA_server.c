@@ -7,11 +7,10 @@
 #include "RA.h"
 
 #define TH_ID   pthread_self()
-#define MAX_TH	10
 
 typedef struct QueueLock Qlock;
 struct QueueLock {
-        pthread_mutex_t		lock[MAX_TH];		
+        pthread_mutex_t		lock;		
         pthread_cond_t		cond;
        	unsigned int		worker;
         unsigned int		waiter;
@@ -62,7 +61,18 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	/*Save the Requested Resources*/
 	Req_Rsrc=argp->req;
 
-	QFlag=Queue_Lock(&lock);
+	/*
+	 * If the number of requested resources is satisfied
+	 * so QFlag:=1
+	 * else threads will wait until there's a broadcast when 
+	 * resources are released
+	 */
+	QFlag=Queue_Lock(&lock);  
+
+	pthread_mutex_lock(&lockR);		
+	rsrc_pvt-=Req_Rsrc;
+	pthread_mutex_unlock(&lockR);
+  
 	if (QFlag) {
 		printf("[START:\t] Thread id = %d, arg = %d\n",pthread_self(),argp->req);
 		printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
@@ -89,7 +99,14 @@ release_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 * [DeAllocation]: Update the resources number */
 	Rep_Rsrc=argp->req;
 	if (Rep_Rsrc == 1) { 		
+		
+		/*Release the resources*/
+		pthread_mutex_lock(&lockR);		
+		rsrc_pvt+=Req_Rsrc;
+		pthread_mutex_unlock(&lockR);
+		/*BroadCast to indicate that the resources have been released*/
 		Queue_UnLock(&lock);
+
 		printf("[UPDATE:\t] rsrc_pvt = %d \n",rsrc_pvt);
 	  	printf("[END  :\t] Thread id = %d is done\n",pthread_self());
 	}
@@ -114,10 +131,8 @@ resourceallocator_2_freeresult (SVCXPRT *transp, xdrproc_t xdr_result, caddr_t r
 int Queue_init(Qlock *qlock){
 
 	if(!init) { 
-		int i;
-		for (i=0; i< MAX_TH; i++) {
-			pthread_mutex_init(&(qlock->lock[i]), NULL);
-		}
+
+    pthread_mutex_init(&(qlock->lock), NULL);
 		pthread_cond_init(&(qlock->cond), NULL);
 
 		qlock->worker = 1U;	//set the LSB to 1
@@ -131,31 +146,24 @@ int Queue_Lock(Qlock *qlock) {
 
 	myTicket= __sync_add_and_fetch( (int*) & (qlock->waiter), (int) 1);
 	printf("myTicket:%d\n", myTicket);
-	pthread_mutex_lock(&qlock->lock[myTicket]);
+	pthread_mutex_lock(&qlock->lock);
 
 	/*Block if there's not enough resources*/
 	while (Req_Rsrc > rsrc_pvt) {		
 		/*Block If It's not my turn*/
 		while (myTicket != qlock->worker) {
-			pthread_cond_wait(&qlock->cond,&qlock->lock[myTicket]);
+			pthread_cond_wait(&qlock->cond,&qlock->lock);
 		}	
 	}
-	/*Wake up*/
-	pthread_mutex_lock(&lockR);		
-	rsrc_pvt-=Req_Rsrc;
-	pthread_mutex_unlock(&lockR);		
+	pthread_mutex_unlock(&qlock->lock);
 	//  __sync_sub_and_fetch(rsrc_pvt, Req_Rsrc);
 	return 1;
 }
 
 int Queue_UnLock(Qlock *qlock) { 
 	/*Increase the waiters counter*/
-	qlock->worker = (qlock->worker)+1;
-	
-	pthread_mutex_lock(&lockR);		
-	rsrc_pvt+=Req_Rsrc;
-	pthread_mutex_unlock(&lockR);		
+	qlock->worker = (qlock->worker)+1;		
 	
 	pthread_cond_broadcast(&qlock->cond);	
-	pthread_mutex_unlock(&qlock->lock[myTicket]);	
+	pthread_mutex_unlock(&qlock->lock);	
 }
