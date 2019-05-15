@@ -9,7 +9,7 @@
 #include <rpc/rpc.h>
 
 #include <pthread.h>
-
+#include <unistd.h>
 #ifdef __cplusplus
 extern "C" {
 #endif

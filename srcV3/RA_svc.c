@@ -30,10 +30,8 @@ unsigned long int id=0;
 /* Define the thread_id @p_thread and @attr */
 pthread_t p_thread; 
 pthread_attr_t attr;
+
 /* Function/Handler Executed by the thread */
-
-
-
 void *
 serv_request(void *data)
 {
@@ -63,7 +61,7 @@ SVCXPRT *transp;
 	switch (rqstp->rq_proc) {
 	case NULLPROC:
 		(void) svc_sendreply (transp, (xdrproc_t) xdr_void, (char *)NULL);
-		return;
+		break;
 	
 	case allocate:
 		_xdr_argument = (xdrproc_t) xdr_rsrc_req;
