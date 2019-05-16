@@ -54,7 +54,7 @@ while(1){
 	 */
 	/*--------------------------------------------*/
 	sleep(2);
-	release_2_arg.req = RELEASE;
+	release_2_arg.req = allocate_2_arg.req;
 	retval_2 = release_2(&release_2_arg, &result_2, clnt);
 	if (retval_2 != RPC_SUCCESS) {
 		clnt_perror (clnt, "call failed");
