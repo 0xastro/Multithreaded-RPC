@@ -1,0 +1,168 @@
+[rqst:]...ALLOCATE
+myTicket:1
+[START:	] Thread id = 140122731448064, arg = 3
+[UPDATE:	] rsrc_pvt = 97 
+[rqst:]...ALLOCATE
+myTicket:2
+[START:	] Thread id = 140122731448064, arg = 3
+[UPDATE:	] rsrc_pvt = 94 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:3
+[START:	] Thread id = 140122731448064, arg = 6
+[UPDATE:	] rsrc_pvt = 91 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:4
+[START:	] Thread id = 140122731448064, arg = 6
+[UPDATE:	] rsrc_pvt = 91 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:5
+[START:	] Thread id = 140122731448064, arg = 7
+[UPDATE:	] rsrc_pvt = 90 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:6
+[START:	] Thread id = 140122731448064, arg = 7
+[UPDATE:	] rsrc_pvt = 90 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:7
+[START:	] Thread id = 140122731448064, arg = 5
+[UPDATE:	] rsrc_pvt = 92 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:8
+[START:	] Thread id = 140122731448064, arg = 5
+[UPDATE:	] rsrc_pvt = 92 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:9
+[START:	] Thread id = 140122731448064, arg = 3
+[UPDATE:	] rsrc_pvt = 94 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:10
+[START:	] Thread id = 140122731448064, arg = 3
+[UPDATE:	] rsrc_pvt = 94 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:11
+[START:	] Thread id = 140122731448064, arg = 5
+[UPDATE:	] rsrc_pvt = 92 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:12
+[START:	] Thread id = 140122731448064, arg = 5
+[UPDATE:	] rsrc_pvt = 92 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122720859904 is done
+[rqst:]...ALLOCATE
+myTicket:13
+[START:	] Thread id = 140122720859904, arg = 6
+[UPDATE:	] rsrc_pvt = 91 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 97 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:14
+[START:	] Thread id = 140122731448064, arg = 2
+[UPDATE:	] rsrc_pvt = 95 
+[rqst:]...ALLOCATE
+myTicket:15
+[START:	] Thread id = 140122731448064, arg = 5
+[UPDATE:	] rsrc_pvt = 90 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 95 
+[END  :	] Thread id = 140122720859904 is done
+[rqst:]...ALLOCATE
+myTicket:16
+[START:	] Thread id = 140122720859904, arg = 9
+[UPDATE:	] rsrc_pvt = 86 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 95 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:17
+[START:	] Thread id = 140122731448064, arg = 1
+[UPDATE:	] rsrc_pvt = 94 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 95 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:18
+[START:	] Thread id = 140122731448064, arg = 2
+[UPDATE:	] rsrc_pvt = 93 
+[rqst:]...ALLOCATE
+myTicket:19
+[START:	] Thread id = 140122731448064, arg = 5
+[UPDATE:	] rsrc_pvt = 88 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 93 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:20
+[START:	] Thread id = 140122731448064, arg = 7
+[UPDATE:	] rsrc_pvt = 86 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 93 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:21
+[START:	] Thread id = 140122731448064, arg = 6
+[UPDATE:	] rsrc_pvt = 87 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 93 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:22
+[START:	] Thread id = 140122731448064, arg = 0
+[UPDATE:	] rsrc_pvt = 93 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 93 
+[END  :	] Thread id = 140122731448064 is done
+[rqst:]...ALLOCATE
+myTicket:23
+[START:	] Thread id = 140122731448064, arg = 2
+[UPDATE:	] rsrc_pvt = 91 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 93 
+[END  :	] Thread id = 140122720859904 is done
+[rqst:]...ALLOCATE
+myTicket:24
+[START:	] Thread id = 140122720859904, arg = 9
+[UPDATE:	] rsrc_pvt = 84 
+[rqst:]....RELEASE
+[UPDATE:	] rsrc_pvt = 93 
+[END  :	] Thread id = 140122720859904 is done
+[rqst:]...ALLOCATE
+myTicket:25
+[START:	] Thread id = 140122720859904, arg = 3
+[UPDATE:	] rsrc_pvt = 90 
+[rqst:]...ALLOCATE
+myTicket:26
+[START:	] Thread id = 140122731448064, arg = 2
+[UPDATE:	] rsrc_pvt = 88 
+
