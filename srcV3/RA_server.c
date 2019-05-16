@@ -67,9 +67,14 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 	* else threads will wait until there's a broadcast when 
 	 	* resources are released
 	 	*/
-		QFlag=Queue_Lock(&qqlock);  
+		//pthread_mutex_lock(&lock); 
+		QFlag=Queue_Lock(&qqlock); 
+
 	}
 	rsrc_pvt= __sync_sub_and_fetch( (unsigned int*) & (rsrc_pvt),  req_rsrc);
+
+	/*if (QFlag)
+		pthread_mutex_unlock(&lock);*/
 	/* ------------
 	 * Do some work
 	 * -----------
@@ -104,10 +109,10 @@ release_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 
 	if (req_rsrc_release) { 		
 
-		/*BroadCast to indicate that the resources have been released*/
-		Queue_UnLock(&qqlock);
 		/*Release the resources*/
 		rsrc_pvt= __sync_add_and_fetch( (unsigned int*) & (rsrc_pvt),  req_rsrc_release);
+		/*BroadCast to indicate that the resources have been released*/
+		Queue_UnLock(&qqlock);
 		printf("[UPDATE:\t] rsrc_pvt = %u \n",rsrc_pvt);
 	  	printf("[END  :\t] Thread id = %ld is done\n",pthread_self());
 	}
