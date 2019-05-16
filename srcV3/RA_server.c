@@ -59,6 +59,8 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 * are not satisfied
 	 */
 	req_rsrc=argp->req;
+
+	pthread_mutex_lock(&lock);
 	while (req_rsrc > rsrc_pvt) {
 		printf("DEBUG:\t\targp->req %d\n\n",argp->req);
 		/*
@@ -72,9 +74,9 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 
 	}
 	rsrc_pvt= __sync_sub_and_fetch( (unsigned int*) & (rsrc_pvt),  req_rsrc);
+	pthread_mutex_unlock(&lock);
 
-	/*if (QFlag)
-		pthread_mutex_unlock(&lock);*/
+
 	/* ------------
 	 * Do some work
 	 * -----------
