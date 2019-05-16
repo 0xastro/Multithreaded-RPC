@@ -16,6 +16,7 @@
 #define SIG_PF void(*)(int)
 #endif
 
+#define MAX_TH 100
 
 /*[MODIFIED]--------------------------------------
  * Data Structure to be passed
@@ -28,8 +29,8 @@ struct thr_par //thread_parameters
 };
 unsigned long int id=0;
 /* Define the thread_id @p_thread and @attr */
-pthread_t p_thread; 
-pthread_attr_t attr;
+pthread_t p_thread[MAX_TH]; 
+pthread_attr_t attr[MAX_TH];
 
 /* Function/Handler Executed by the thread */
 void *
@@ -66,7 +67,7 @@ SVCXPRT *transp;
 	case allocate:
 		_xdr_argument = (xdrproc_t) xdr_rsrc_req;
 		_xdr_result = (xdrproc_t) xdr_reply;
-		id=(id+1)%100; /*Max 100 threads at a time*/
+		id=(id+1)%MAX_TH; /*Max 100 threads at a time*/
 		printf("[rqst:]...ALLOCATE\n");
 		local = (bool_t (*) (char *, void *,  struct svc_req *))allocate_2_svc;
 		break;
@@ -124,8 +125,8 @@ resourceallocator_2(struct svc_req *rqstp, register SVCXPRT *transp)
 	data_ptr->rqstp = rqstp;
 	data_ptr->transp = transp;
 	/*Create a Thread to Handle each Request*/
-	pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
-	pthread_create(&p_thread,&attr,serv_request,(void *)data_ptr);
+	pthread_attr_setdetachstate(&attr[id],PTHREAD_CREATE_DETACHED);
+	pthread_create(&p_thread[id],&attr[id],serv_request,(void *)data_ptr);
 }
 
 int

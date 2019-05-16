@@ -169,7 +169,11 @@ int Queue_Lock(Qlock *qlock) {
 
 int Queue_UnLock(Qlock *qlock) { 
 	/*Increase the waiters counter*/
+<<<<<<< HEAD
 	qlock->worker = __sync_add_and_fetch( (int*) & (qlock->worker), (int) 1)%254;
+=======
+	qlock->worker = __sync_add_and_fetch( (int*) & (qlock->worker), (int) 1);		
+>>>>>>> d2de03a75a8ec3ddd60d9aeddf4a1410f8956655
 	pthread_mutex_lock(&qlock->lock);
 	pthread_cond_broadcast(&qlock->cond);	
 	pthread_mutex_unlock(&qlock->lock);	
