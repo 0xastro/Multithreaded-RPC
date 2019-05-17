@@ -23,7 +23,7 @@ static Qlock qqlock;
 /*----------------------------------------------*/
 
 int Queue_init(Qlock *qlock);
-int Queue_Lock(Qlock *qlock);
+int Queue_Lock(Qlock *qlock, unsigned int *param);
 int Queue_UnLock(Qlock *qlock);
 /*----------------------------------------------*/
 /*
@@ -60,35 +60,30 @@ allocate_2_svc(rsrc_req *argp, reply *result, struct svc_req *rqstp)
 	 */
 	req_rsrc=argp->req;
 
-	pthread_mutex_lock(&lock);
-	while (req_rsrc > rsrc_pvt) {
-		printf("DEBUG:\t\targp->req %d\n\n",argp->req);
-		/*
-		 * If the number of requested resources is satisfied
-	 	* so QFlag:=1
-	 	* else threads will wait until there's a broadcast when 
-	 	* resources are released
-	 	*/
-		//pthread_mutex_lock(&lock); 
-		QFlag=Queue_Lock(&qqlock); 
-
-	}
-	rsrc_pvt= __sync_sub_and_fetch( (unsigned int*) & (rsrc_pvt),  req_rsrc);
-	pthread_mutex_unlock(&lock);
-
+	printf("DEBUG:\t\targp->req %d\n\n",argp->req);
+	/*
+	 * If the number of requested resources is satisfied
+	 * so QFlag:=1
+	 * else threads will wait until there's a broadcast when 
+	 * resources are released
+	 * Queue_Lock takes additional parameters @req_rsrc to
+	 * allocate the resource inside the CS if there's enough 
+	 * rsrc_pvt
+	 */
+	QFlag=Queue_Lock(&qqlock,&req_rsrc); 
 
 	/* ------------
 	 * Do some work
 	 * -----------
 	 */
   
-	
-	printf("[START:\t] Thread id = %ld, arg = %d\n",pthread_self(),argp->req);
-	printf("[UPDATE:\t] rsrc_pvt = %u \n",rsrc_pvt);
-	result->rep = 2*(argp->req);
-	work=rand()%2;
-	sleep(work); 
-	
+	if(QFlag) {	
+		printf("[START:\t] Thread id = %ld, arg = %d\n",pthread_self(),argp->req);
+		printf("[UPDATE:\t] rsrc_pvt = %u \n",rsrc_pvt);
+		result->rep = 2*(argp->req);
+		work=rand()%2;
+		sleep(work); 
+	}
 
 	return retval;
 }
@@ -155,21 +150,22 @@ int Queue_init(Qlock *qlock){
  	blocked threads scenario:
 	thread1 request not eniugh num of rsrc
 */
-int Queue_Lock(Qlock *qlock) { 
+int Queue_Lock(Qlock *qlock, unsigned int *param) { 
 
 	atomic_uint	myTicket;
 	myTicket = __sync_add_and_fetch( (int*) & (qlock->waiter), (int) 1)%254;
 	printf("myTicket:%d\n", myTicket);
 	
 	pthread_mutex_lock(&qlock->lock);
-
-
-	/*Block If It's not my turn*/
-	while (myTicket != qlock->worker) {
-		printf("Ticket %d, worker %d \n\n",myTicket,qlock->worker);
-		pthread_cond_wait(&qlock->cond,&qlock->lock);
-	}
-	
+	printf("[UPDATE:\t] param = %u \n",*param);
+	while( *param > rsrc_pvt )
+		/*Block If It's not my turn*/
+		while (myTicket != qlock->worker) {
+			printf("Ticket %d, worker %d \n\n",myTicket,qlock->worker);
+			pthread_cond_wait(&qlock->cond,&qlock->lock);
+		}
+	/*Allocate the Resource*/
+	rsrc_pvt= __sync_sub_and_fetch( (unsigned int*) & (rsrc_pvt),  *param);
 	pthread_mutex_unlock(&qlock->lock);
 	return 1;
 }
